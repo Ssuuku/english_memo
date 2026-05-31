@@ -19,10 +19,11 @@ export type QuizResultData = {
 
 type QuizResultProps = {
   result: QuizResultData;
-  onRestart?: () => void;
+  onRestart?: () => void; // kept for compatibility
+  onRestartSameCount?: (count: number) => void;
 };
 
-export default function QuizResult({ result, onRestart }: QuizResultProps) {
+export default function QuizResult({ result, onRestart, onRestartSameCount }: QuizResultProps) {
   const { totalQuestions, correctAnswers, score, wrongWords, rankChanges } = result;
   const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
   const rankUpCount = rankChanges.filter((change) => change.delta > 0).length;
@@ -97,12 +98,26 @@ export default function QuizResult({ result, onRestart }: QuizResultProps) {
       )}
 
       <div className="mt-6 space-y-3">
-        <button
-          onClick={onRestart}
-          className="w-full h-12 rounded-2xl bg-sky-600 text-sm font-bold text-white shadow-sm transition hover:bg-sky-700"
-        >
-          もう一度挑戦
-        </button>
+        <div className="grid gap-2">
+          <button
+            onClick={() => {
+              if (onRestartSameCount) {
+                onRestartSameCount(totalQuestions);
+              } else if (onRestart) {
+                onRestart();
+              }
+            }}
+            className="w-full h-12 rounded-2xl bg-sky-600 text-sm font-bold text-white shadow-sm transition hover:bg-sky-700"
+          >
+            同じ問題数で挑戦
+          </button>
+          <Link
+            href="/quiz"
+            className="block w-full h-12 rounded-2xl bg-zinc-100 text-sm font-bold text-zinc-700 shadow-sm transition hover:bg-zinc-200 flex items-center justify-center"
+          >
+            問題数を変えて挑戦
+          </Link>
+        </div>
         <Link
           href="/words"
           className="block w-full h-12 rounded-2xl bg-zinc-100 text-sm font-bold text-zinc-700 shadow-sm transition hover:bg-zinc-200 flex items-center justify-center"

@@ -55,9 +55,11 @@ export default function QuizForm({ words, allWords, onFinish }: QuizFormProps) {
     if (isAnswered) return;
     setSelectedIndex(choiceIndex);
     setAnswered((prev) => prev + 1);
-
+    const unknownChoiceIndex = currentQuestion.choices.length; // index reserved for "わからない"
     const isCorrect = choiceIndex === currentQuestion.correctIndex;
+    const userAnswer = choiceIndex === unknownChoiceIndex ? "わからない" : currentQuestion.choices[choiceIndex];
     const beforeRank = getScoreRank(currentQuestion.score).label;
+
     if (isCorrect) {
       setScore((prevScore) => prevScore + 1);
       setCorrectCount((prevCount) => prevCount + 1);
@@ -68,7 +70,7 @@ export default function QuizForm({ words, allWords, onFinish }: QuizFormProps) {
         {
           term: currentQuestion.term,
           correctMeaning: currentQuestion.correctMeaning,
-          userAnswer: currentQuestion.choices[choiceIndex],
+          userAnswer,
         },
       ]);
     }
@@ -171,6 +173,31 @@ export default function QuizForm({ words, allWords, onFinish }: QuizFormProps) {
             </button>
           );
         })}
+        {/* わからないボタン（不正解扱い） */}
+        {(() => {
+          const index = currentQuestion.choices.length;
+          const isCorrect = selectedIndex !== null && index === currentQuestion.correctIndex;
+          const isSelected = selectedIndex === index;
+          const buttonClass = isAnswered
+            ? isCorrect
+              ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+              : isSelected
+              ? "bg-rose-50 border-rose-300 text-rose-900"
+              : "bg-zinc-50 border-zinc-200 text-zinc-900"
+            : "bg-white border border-zinc-200 text-zinc-950 hover:bg-sky-50";
+
+          return (
+            <button
+              key="unknown"
+              type="button"
+              onClick={() => handleChoice(index)}
+              disabled={isAnswered}
+              className={`rounded-3xl px-4 py-4 text-left text-sm font-semibold transition ${buttonClass}`}
+            >
+              わからない
+            </button>
+          );
+        })()}
       </div>
 
       {isAnswered ? (

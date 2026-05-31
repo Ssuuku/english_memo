@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Word } from "@/features/words/types";
-import { deleteWord, updateWord } from "@/features/words/lib/wordsRepo";
+import { deleteWord, updateWord, updateWordStats } from "@/features/words/lib/wordsRepo";
 import { createClient } from "@/lib/supabase/browserClient";
 
 import { getScoreRank } from "@/features/words/lib/scoreRank";
@@ -22,6 +22,7 @@ export default function WordListItem({ word, onDelete, onUpdate }: WordListItemP
   const [editMemo, setEditMemo] = useState(word.memo || "");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAdjustingScore, setIsAdjustingScore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
@@ -64,6 +65,24 @@ export default function WordListItem({ word, onDelete, onUpdate }: WordListItemP
     onDelete?.(word.id);
   }
 
+  async function handleAdjustScore(delta: number) {
+    setError(null);
+    setIsAdjustingScore(true);
+    try {
+      const client = createClient();
+      const res = await updateWordStats(client, word.id, { scoreDelta: delta });
+      if (!res.ok) {
+        setError(res.error);
+      } else {
+        onUpdate?.(res.data);
+      }
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setIsAdjustingScore(false);
+    }
+  }
+
   if (isEditing) {
     return (
       <li className="rounded-2xl border border-blue-200 bg-blue-50 px-3 py-3">
@@ -73,6 +92,29 @@ export default function WordListItem({ word, onDelete, onUpdate }: WordListItemP
               {error}
             </div>
           )}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-zinc-600">スコア: <span className="font-bold text-zinc-900">{word.score ?? 0}</span></span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => void handleAdjustScore(-1)}
+                  disabled={isAdjustingScore}
+                  className="h-9 w-9 rounded-full bg-rose-100 text-rose-700 transition hover:bg-rose-200"
+                  title="スコアを減らす"
+                >
+                  −
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleAdjustScore(1)}
+                  disabled={isAdjustingScore}
+                  className="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200"
+                  title="スコアを増やす"
+                >
+                  ＋
+                </button>
+              </div>
+            </div>
           <input
             type="text"
             value={editTerm}
