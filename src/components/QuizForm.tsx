@@ -140,7 +140,7 @@ export default function QuizForm({ words, allWords, onFinish }: QuizFormProps) {
       </div>
 
       <div className="mt-6 text-center">
-        <p className="text-xs font-semibold text-zinc-500">この英単語の意味はどれ？</p>
+        <p className="text-xs font-semibold text-zinc-500">この単語の意味はどれ？</p>
         <p className="mt-2 text-4xl font-extrabold tracking-tight">{currentQuestion.term}</p>
         {currentQuestion.memo && (
           <p className="mt-3 text-xs text-zinc-600 bg-zinc-50 rounded-lg px-3 py-2">

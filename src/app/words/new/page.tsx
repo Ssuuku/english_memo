@@ -2,14 +2,18 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/serverClient";
 import { redirect } from "next/navigation";
 import NewWordForm from "@/components/NewWordForm";
+import { parseWordSubject } from "@/features/words/lib/wordLabels";
 
-export default async function NewWordPage() {
+export default async function NewWordPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/");
   }
+
+  const { category: categoryParam } = await searchParams;
+  const subject = parseWordSubject(categoryParam);
 
   return (
     <div className="min-h-dvh bg-zinc-50 text-zinc-950">
@@ -28,7 +32,7 @@ export default async function NewWordPage() {
           </Link>
         </header>
 
-        <NewWordForm />
+        <NewWordForm defaultCategory={subject} />
 
         <footer className="mt-6 text-center text-xs text-zinc-500">
           <Link href="/" className="font-semibold text-zinc-800 hover:underline">

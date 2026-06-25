@@ -1,3 +1,5 @@
+export type WordCategory = "english" | "kobun" | "kanbun";
+
 export type Word = {
   id: string;
   term: string;
@@ -6,6 +8,9 @@ export type Word = {
   score: number;
   correct_count: number;
   wrong_count: number;
+  category: WordCategory;
+  reading: string | null;
+  supplement: string | null;
   created_at?: string;
 };
 
@@ -14,5 +19,8 @@ export type NewWordInput = {
   meaning?: string;
   meanings?: string[];
   memo?: string;
+  category?: WordCategory;
+  reading?: string;
+  supplement?: string;
 };
 

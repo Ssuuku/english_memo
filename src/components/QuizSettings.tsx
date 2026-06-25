@@ -5,12 +5,13 @@ import Link from "next/link";
 
 type QuizSettingsProps = {
   maxCount: number;
+  category?: string;
 };
 
-export default function QuizSettings({ maxCount }: QuizSettingsProps) {
+export default function QuizSettings({ maxCount, category }: QuizSettingsProps) {
   const initialCount = maxCount > 0 ? Math.min(10, maxCount) : 0;
   const [count, setCount] = useState(initialCount);
-  const href = `/quiz?limit=${count}`;
+  const href = category ? `/quiz?limit=${count}&category=${category}` : `/quiz?limit=${count}`;
 
   console.log("QuizSettings render:", { count, maxCount, href });
 

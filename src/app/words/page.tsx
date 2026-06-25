@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/serverClient";
 import { listWords } from "@/features/words/lib/wordsRepo";
+import { parseWordSubject, wordSubjects } from "@/features/words/lib/wordLabels";
 import { redirect } from "next/navigation";
 import WordListScreen from "@/components/WordListScreen";
 
-export default async function WordsPage() {
+export default async function WordsPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -12,7 +13,11 @@ export default async function WordsPage() {
     redirect("/");
   }
 
-  const res = await listWords(supabase);
+  const { category: categoryParam } = await searchParams;
+  const subject = parseWordSubject(categoryParam);
+  const category = subject === "all" ? undefined : subject;
+
+  const res = await listWords(supabase, category);
   if (!res.ok) {
     return (
       <div className="min-h-dvh bg-zinc-50 text-zinc-950">
@@ -50,7 +55,7 @@ export default async function WordsPage() {
               クイズに挑戦
             </Link>
             <Link
-              href="/words/new"
+              href={subject === "all" ? "/words/new" : `/words/new?category=${subject}`}
               className="grid h-11 w-11 place-items-center rounded-2xl bg-zinc-950 text-white shadow-sm transition hover:bg-zinc-900"
               aria-label="単語を追加"
               title="単語を追加"
@@ -61,6 +66,22 @@ export default async function WordsPage() {
         </header>
 
         <section className="mt-5">
+          <div className="mb-4 flex flex-wrap gap-2">
+            {wordSubjects.map((option) => (
+              <Link
+                key={option.key}
+                href={`/words?category=${option.key}`}
+                className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
+                  subject === option.key
+                    ? "bg-sky-500 text-white shadow-sm"
+                    : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                }`}
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+
           {words.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4">
               <p className="text-sm font-semibold">まだ単語がありません。</p>
