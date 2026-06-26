@@ -197,6 +197,30 @@ export default function WordListItem({ word, onDelete, onUpdate }: WordListItemP
             <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${rank.color}`}>{rank.label}</span>
             <span className="text-xs text-zinc-500">スコア: {word.score ?? 0}</span>
           </div>
+          {word.category === "kanbun" && word.kanbun_annotations?.length ? (
+            <div className="mt-3">
+              <div
+                className="inline-flex gap-1 rounded-2xl bg-zinc-50 px-2 py-2"
+                style={{ writingMode: "vertical-rl", textOrientation: "upright" }}
+              >
+                {word.kanbun_annotations.map((annotation, index) => (
+                  <div
+                    key={index}
+                    className="inline-grid grid-rows-[0.9rem_auto_0.9rem] items-center justify-items-center text-center"
+                    style={{ minWidth: "1.4rem" }}
+                  >
+                    <span className="text-[10px] leading-none text-zinc-500">
+                      {annotation.reading ?? ""}
+                    </span>
+                    <span className="text-xl font-bold leading-none">{annotation.char}</span>
+                    <span className="text-[10px] leading-none text-zinc-500">
+                      {annotation.kaeriten ?? ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {meaningLines.length > 0 && (
             <div className="mt-1 space-y-1 text-sm text-zinc-700">
               {meaningLines.map((line, index) => (

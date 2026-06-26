@@ -58,7 +58,7 @@ export async function listWords(client: SupabaseClient, category?: WordCategory)
 
   const query = client
     .from("words")
-    .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, created_at")
+    .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, kanbun_annotations, created_at")
     .eq("user_id", user.id);
 
   if (category) {
@@ -90,6 +90,7 @@ export async function listWords(client: SupabaseClient, category?: WordCategory)
           category: "english",
           reading: null,
           supplement: null,
+          kanbun_annotations: null,
         })) as Word[],
       };
     }
@@ -124,13 +125,14 @@ export async function createWord(client: SupabaseClient, input: NewWordInput): P
     category: normalized.category,
     reading: normalized.reading,
     supplement: normalized.supplement,
+    kanbun_annotations: (input.kanbun_annotations as unknown) ?? null,
     user_id: user.id,
   };
 
   const { data, error } = await client
     .from("words")
     .insert(insertData)
-    .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, created_at")
+    .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, kanbun_annotations, created_at")
     .single();
 
   if (error) {
@@ -142,12 +144,13 @@ export async function createWord(client: SupabaseClient, input: NewWordInput): P
         category: normalized.category,
         reading: normalized.reading,
         supplement: normalized.supplement,
+        kanbun_annotations: (input.kanbun_annotations as unknown) ?? null,
         user_id: user.id,
       };
       const fallback = await client
         .from("words")
         .insert(fallbackInsertData)
-        .select("id, term, meaning, memo, category, reading, supplement, created_at")
+        .select("id, term, meaning, memo, category, reading, supplement, kanbun_annotations, created_at")
         .single();
       if (fallback.error) return { ok: false, error: fallback.error.message };
       return { ok: true, data: { ...(fallback.data as Word), score: 0, correct_count: 0, wrong_count: 0 } as Word };
@@ -175,10 +178,11 @@ export async function updateWord(client: SupabaseClient, id: string, input: NewW
       category: normalized.category,
       reading: normalized.reading,
       supplement: normalized.supplement,
+      kanbun_annotations: (input.kanbun_annotations as unknown) ?? null,
     })
     .eq("id", id)
     .eq("user_id", user.id)
-    .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, created_at")
+    .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, kanbun_annotations, created_at")
     .single();
 
   if (error) {
@@ -192,10 +196,11 @@ export async function updateWord(client: SupabaseClient, id: string, input: NewW
           category: normalized.category,
           reading: normalized.reading,
           supplement: normalized.supplement,
+          kanbun_annotations: (input.kanbun_annotations as unknown) ?? null,
         })
         .eq("id", id)
         .eq("user_id", user.id)
-        .select("id, term, meaning, memo, category, reading, supplement, created_at")
+        .select("id, term, meaning, memo, category, reading, supplement, kanbun_annotations, created_at")
         .single();
       if (fallback.error) return { ok: false, error: fallback.error.message };
       return { ok: true, data: { ...(fallback.data as Word), score: 0, correct_count: 0, wrong_count: 0 } as Word };
@@ -223,7 +228,7 @@ export async function updateWordStats(
   if (Object.keys(increments).length === 0) {
     const { data, error } = await client
       .from("words")
-      .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, created_at")
+      .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, kanbun_annotations, created_at")
       .eq("id", id)
       .eq("user_id", user.id)
       .single();
@@ -247,6 +252,7 @@ export async function updateWordStats(
             category: "english",
             reading: null,
             supplement: null,
+            kanbun_annotations: null,
           } as Word,
         };
       }
@@ -292,7 +298,7 @@ export async function updateWordStats(
     })
     .eq("id", id)
     .eq("user_id", user.id)
-    .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, created_at")
+    .select("id, term, meaning, memo, score, correct_count, wrong_count, category, reading, supplement, kanbun_annotations, created_at")
     .single();
 
   if (error) {

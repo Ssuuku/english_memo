@@ -11,6 +11,7 @@ export type Word = {
   category: WordCategory;
   reading: string | null;
   supplement: string | null;
+  kanbun_annotations?: { char: string; reading?: string | null; kaeriten?: string | null }[] | null;
   created_at?: string;
 };
 
@@ -22,5 +23,6 @@ export type NewWordInput = {
   category?: WordCategory;
   reading?: string;
   supplement?: string;
+  kanbun_annotations?: { char: string; reading?: string | null; kaeriten?: string | null }[] | null;
 };
 

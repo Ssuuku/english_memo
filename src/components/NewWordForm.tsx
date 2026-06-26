@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { WordCategory } from "@/features/words/types";
 import { createClient } from "@/lib/supabase/browserClient";
 import { createWord } from "@/features/words/lib/wordsRepo";
@@ -19,6 +19,11 @@ export default function NewWordForm({ defaultCategory = "english" }: NewWordForm
   const [reading, setReading] = useState("");
   const [supplement, setSupplement] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<WordCategory>(category);
+  const [kanbunAnnotations, setKanbunAnnotations] = useState<{
+    char: string;
+    reading?: string;
+    kaeriten?: string;
+  }[]>([]);
 
   const currentLabels = getWordFormLabels(selectedCategory);
 
@@ -29,6 +34,23 @@ export default function NewWordForm({ defaultCategory = "english" }: NewWordForm
       return updated;
     });
   };
+
+  // Sync per-character annotations when term changes for 漢文
+  useEffect(() => {
+    if (selectedCategory !== "kanbun") return;
+    const chars = Array.from(word);
+    setKanbunAnnotations((current) => {
+      const next = chars.map((ch, idx) => {
+        const existing = current[idx];
+        return {
+          char: ch,
+          reading: existing?.reading ?? "",
+          kaeriten: existing?.kaeriten ?? "",
+        };
+      });
+      return next;
+    });
+  }, [word, selectedCategory]);
 
   const addMeaningField = () => {
     setMeanings((current) => [...current, ""]);
@@ -51,6 +73,7 @@ export default function NewWordForm({ defaultCategory = "english" }: NewWordForm
       category: selectedCategory,
       reading: reading.trim() || undefined,
       supplement: supplement.trim() || undefined,
+      kanbun_annotations: selectedCategory === "kanbun" ? kanbunAnnotations : undefined,
     });
 
     if (!result.ok) {
@@ -63,6 +86,7 @@ export default function NewWordForm({ defaultCategory = "english" }: NewWordForm
     setMemo("");
     setReading("");
     setSupplement("");
+    setKanbunAnnotations([]);
   };
 
   return (
@@ -100,6 +124,52 @@ export default function NewWordForm({ defaultCategory = "english" }: NewWordForm
           onChange={(event) => setWord(event.target.value)}
         />
       </div>
+
+      {/* Kanbun per-character annotations editor */}
+      {selectedCategory === "kanbun" && (
+        <div>
+          <label className="block text-sm font-semibold text-zinc-700 mb-2">漢字ごとの読み・返り点</label>
+          <div className="flex flex-wrap gap-2">
+            {kanbunAnnotations.length === 0 && (
+              <div className="text-sm text-zinc-500">漢文の本文を入力すると、各文字ごとに読みと返り点を設定できます。</div>
+            )}
+            {kanbunAnnotations.map((ann, idx) => (
+              <div key={idx} className="flex items-center gap-2 bg-zinc-50 border border-zinc-100 rounded-2xl px-2 py-1">
+                <select
+                  value={ann.kaeriten ?? ""}
+                  onChange={(e) =>
+                    setKanbunAnnotations((current) => {
+                      const next = [...current];
+                      next[idx] = { ...next[idx], kaeriten: e.target.value };
+                      return next;
+                    })
+                  }
+                  className="text-sm rounded px-2 py-1 bg-white border"
+                >
+                  <option value="">返り点なし</option>
+                  <option value="レ">レ (レ点)</option>
+                  <option value="一">一 (一点)</option>
+                  <option value="二">二 (二点)</option>
+                  <option value="乙">乙 (乙点)</option>
+                </select>
+                <div className="text-lg font-bold">{ann.char}</div>
+                <input
+                  value={ann.reading ?? ""}
+                  onChange={(e) =>
+                    setKanbunAnnotations((current) => {
+                      const next = [...current];
+                      next[idx] = { ...next[idx], reading: e.target.value };
+                      return next;
+                    })
+                  }
+                  placeholder="読み"
+                  className="rounded px-2 py-1 text-sm border bg-white"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Meanings input */}
       <div>

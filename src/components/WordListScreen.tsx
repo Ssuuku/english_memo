@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Word } from "@/features/words/types";
 import { getScoreRank } from "@/features/words/lib/scoreRank";
 import WordListItem from "@/components/WordListItem";
@@ -32,6 +32,10 @@ export default function WordListScreen({ words }: WordListScreenProps) {
   const [selectedRank, setSelectedRank] = useState("all");
   const [sortKey, setSortKey] = useState("created_desc");
   const [wordList, setWordList] = useState(words);
+
+  useEffect(() => {
+    setWordList(words);
+  }, [words]);
 
   const filteredWords = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
